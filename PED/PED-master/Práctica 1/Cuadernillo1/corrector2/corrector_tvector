@@ -1,0 +1,19 @@
+#!/bin/bash
+clear
+echo Pruebas Campus TVectorCalendario...
+./cor12.sh TVectorCalendario/campus/tad01.cpp
+./cor12.sh TVectorCalendario/campus/tad02.cpp
+./cor12.sh TVectorCalendario/campus/tad03.cpp
+./cor12.sh TVectorCalendario/campus/tad04.cpp
+./cor12.sh TVectorCalendario/campus/tad05.cpp
+./cor12.sh TVectorCalendario/campus/tad06.cpp
+./cor12.sh TVectorCalendario/campus/tad07.cpp
+./cor12.sh TVectorCalendario/campus/tad08.cpp
+echo Mas pruebas TVectorCalendario...
+./cor12.sh TVectorCalendario/correccion/tad06.cpp
+./cor12.sh TVectorCalendario/correccion/tad07.cpp
+./cor12.sh TVectorCalendario/correccion/tad08.cpp
+./cor12.sh TVectorCalendario/correccion/tad09.cpp
+./cor12.sh TVectorCalendario/correccion/tad10.cpp
+
+

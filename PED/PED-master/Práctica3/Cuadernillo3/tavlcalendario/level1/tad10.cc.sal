@@ -1,0 +1,7 @@
+a y b son iguales
+c.Inorden(): []
+c.Preorden(): []
+d.Inorden(): []
+d.Preorden(): []
+c y d son iguales
+c y d ahora son distintos

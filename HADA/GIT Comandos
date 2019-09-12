@@ -1,0 +1,44 @@
+(<>) esto no se pone
+
+//inicializar el repositorio, se crea la rama master
+git init
+-------------------------
+//para añadir ficheros
+git add <fichero>
+git commit -m "mensaje..."
+-------------------------
+git commit -a -m "mensaje..." // -a es para todos los ficheros
+-------------------------
+git ls-files //listar ficheros que estas bajo control
+git files -o //listar ficheros que no estan bajo control
+-------------------------
+//muestra todos los commits que has puesto
+git log
+-------------------------
+git checkout (<idcommit> || <etiq> || <rama>) //para recuperar antiguo commit o etiqueta o rama
+-------------------------
+git status//nos muestra como va nuestro repositorio
+-------------------------
+git tag <etq> //etiquetar los commits
+git tag //mostrar las etiquetas
+-------------------------
+//cuantas ramas tengo
+git branch
+//crear rama
+git branch <rama>
+-------------------------
+//juntar dos ramas, <rama> es la otra rama que quieres cambiar
+git merge <rama> 
+-------------------------
+//borrar rama
+git branch -d <rama>
+-------------------------
+//el commit está, pero el fichero no se queda modificado
+git revert -n HEAD
+//quita el commit, pero el fichero se queda modificado
+git reset HEAD~1
+////quita el commit y el fichero no se queda modificado
+git reset --hard HEAD~1
+-------------------------
+//HEAD funciona como una pila
+(HEAD*HEAD~1*HEAD~2)

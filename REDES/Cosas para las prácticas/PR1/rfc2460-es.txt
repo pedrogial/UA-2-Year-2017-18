@@ -1,0 +1,2189 @@
+
+
+
+
+
+
+Network Working Group                                         S. Deering
+Request for Comments: 2460                                         Cisco
+Obsoletos: 1883                                                R. Hinden
+Categoría: Track de Estándares                                     Nokia
+                                                          Diciembre 1998
+
+
+                            Especificación
+                    Protocolo Internet, Versión 6 (IPv6)
+
+Estatus de este Memorándum
+
+   Este documento especifica un protocolo del track de estándares
+   Internet para la comunidad Internet, y solicita debate y sugerencias
+   para mejorías. Por favor remítase a la edición actual de los
+   "Estándares de Protocolos Oficiales Internet" (STD 1) para el estado
+   de estandarización y estatus de este protocolo. La distribución de
+   este memorándum es ilimitada.
+
+Aviso de Copyright
+
+   Copyright (C) La Sociedad Internet (1998). Todos los Derechos
+   Reservados.
+
+Resumen
+
+   Este documento especifica la versión 6 del Protocolo Internet (IPv6),
+   algunas veces también referido como IP Siguiente Generación o IPng.
+
+Lista de Contenidos
+
+   1. Introducción....................................................2
+   2. Terminología....................................................3
+   3. Formato de la Cabecera IPv6.....................................4
+   4. Cabeceras de Extensión IPv6.....................................6
+       4.1 Orden de las Cabeceras de Extensión........................7
+       4.2 Opciones...................................................9
+       4.3 Cabecera Opciones de Salto a Salto........................11
+       4.4 Cabecera Enrutamiento.....................................12
+       4.5 Cabecera Fragmento........................................18
+       4.6 Cabecera Opciones de Destino..............................23
+       4.7 Cabecera No Hay Siguiente.................................24
+   5. Cuestiones de Tamaño del Paquete...............................24
+   6. Etiquetas de Flujo.............................................25
+   7. Clases de Tráfico..............................................26
+   8. Cuestiones de Protocolo de Capa Superior.......................27
+       8.1 Sumas de Verificación de Capa Superior....................27
+       8.2 Tiempo de Vida Máximo de un Paquete.......................28
+
+
+
+Deering & Hinden           Track de Estándares                [Página 1]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+       8.3 Tamaño Máximo de la Carga Útil de Capa Superior...........29
+       8.4 Contestando a Paquetes que Llevan Cabeceras Enrutamiento..29
+   Apéndice A. Semántica y Uso del Campo Etiqueta de Flujo...........30
+   Apéndice B. Pautas de Formateo para las Opciones..................32
+   Consideraciones de Seguridad......................................35
+   Reconocimientos...................................................35
+   Direcciones de los Autores........................................35
+   Dirección del Traductor al Castellano.............................35
+   Referencias.......................................................36
+   Cambios a partir de la RFC-1883...................................36
+   Declaración de Copyright Completa.................................39
+
+1.  Introducción
+
+   El IP versión 6 (IPv6) es la nueva versión del Protocolo Internet,
+   diseñado como el sucesor para el IP versión 4 (IPv4) [RFC-791]. Los
+   cambios del IPv4 al IPv6 recaen principalmente en las siguientes
+   categorías:
+
+      o  Capacidades de Direccionamiento Extendida
+
+         El IPv6 incrementa el tamaño de dirección IP de 32 bits a
+         128 bits, para dar soporte a más niveles de direccionamiento
+         jerárquico, un número mucho mayor de nodos direccionables,
+         y una autoconfiguración más simple de direcciones. La
+         escalabilidad del enrutamiento multienvío se mejora agregando
+         un campo "ámbito" a las direcciones multienvío. Y se define
+         un nuevo tipo de dirección llamada "dirección envío a uno de",
+         usado para enviar un paquete a cualquiera de un grupo de nodos.
+
+      o  Simplificación del Formato de Cabecera
+
+         Algunos campos de la cabecera IPv4 se han sacado o se han hecho
+         opcional, para reducir el costo del caso común de proceso de
+         tratamiento de paquete y para limitar el costo del ancho de
+         banda, de la cabecera IPv6.
+
+      o  Soporte Mejorado para las Extensiones y Opciones
+
+         Los cambios en la manera en que se codifican las opciones de la
+         cabecera IP permiten un reenvío más eficiente, límites menos
+         rigurosos en la longitud de opciones, y mayor flexibilidad para
+         introducir nuevas opciones en el futuro.
+
+      o  Capacidad de Etiquetado de Flujo
+
+         Una nueva capacidad se agrega para permitir el etiquetado de
+         paquetes que pertenecen a "flujos" de tráfico particulares para
+         lo cuál el remitente solicita tratamiento especial, como la
+         calidad de servicio no estándar o el servicio en "tiempo real".
+
+Deering & Hinden           Track de Estándares                [Página 2]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+      o  Capacidades de Autenticación y Privacidad
+
+         Extensiones para utilizar autenticación, integridad de los
+         datos, y (opcional) confidencialidad de los datos, se
+         especifican para el IPv6.
+
+   Este documento especifica la cabecera IPv6 básica y las cabeceras de
+   extensión IPv6 y las opciones inicialmente definidas. Aborda también
+   cuestiones de tamaño del paquete, las semánticas de las etiquetas de
+   flujo y las clases de tráfico, y los efectos del IPv6 en protocolos
+   de capa superior. Los formatos y semánticas de las direcciones IPv6
+   son especificadas separadamente en [ADDRARCH]. La versión IPv6 del
+   ICMP, que a todas las implementaciones IPv6 se exige incluir, es
+   especificada en [ICMPv6].
+
+2.  Terminología
+
+   nodo            - un dispositivo que implementa el IPv6.
+
+   enrutador       - un nodo que reenvía paquetes IPv6 no explícitamente
+                     destinados hacia sí mismo. [Ver Nota abajo].
+
+   host            - cualquier nodo que no es un enrutador. [Ver Nota
+                     abajo].
+
+   capa superior   - una capa de protocolo inmediatamente encima del
+                     IPv6. Ejemplos son los protocolos transporte tal
+                     como el TCP y el UDP, protocolos control tal como
+                     el ICMP, protocolos enrutamiento tal como el OSPF,
+                     y protocolos internet o de capa inferior que están
+                     siendo "tunelizados" sobre (es decir, encapsulados
+                     dentro) IPv6 tal como el IPX, el AppleTalk, o
+                     el mismo IPv6.
+
+   enlace          - una facilidad de comunicación o medio sobre el cual
+                     los nodos pueden comunicarse en la capa de enlace,
+                     es decir, la capa inmediatamente debajo del IPv6.
+                     Ejemplos son las Ethernets (simples o de puentes);
+                     enlaces PPP; X.25, Frame Relay, o redes ATM;
+                     y "túneles" de capa internet (o superior), tal como
+                     los túneles sobre IPv4 o sobre el mismo IPv6.
+
+   vecinos         - nodos conectados al mismo enlace.
+
+   interface       - lo que acopla un nodo a un enlace.
+
+   dirección       - un identificador de capa IPv6 para una interface o
+                     un conjunto de interfaces.
+
+   paquete         - una cabecera IPv6 más carga útil.
+
+Deering & Hinden           Track de Estándares                [Página 3]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   MTU de enlace   - la unidad de transmisión máxima, es decir, el
+                     tamaño del paquete máximo en octetos, que puede
+                     transportarse sobre un enlace.
+
+   MTU de ruta     - la MTU de enlace mínima de todos los enlaces dentro
+                     de una ruta entre un nodo origen y un nodo destino.
+
+   Nota: es posible, aunque inusual, para un dispositivo con interfaces
+   múltiples ser configurado para reenviar paquetes no autodestinados
+   que llegan desde algún conjunto (menos que todas) de sus interfaces,
+   y para descartar paquetes no autodestinados que llegan desde sus
+   otras interfaces. Un dispositivo semejante debe cumplir con los
+   requisitos de protocolo para enrutadores al recibir paquetes de, e
+   interactuar con vecinos sobre, las interfaces anteriores
+   (reenviantes). Debe cumplir con los requisitos de protocolo para
+   hosts la recibir paquetes de, e interactuar con vecinos sobre, las
+   interfaces posteriores (no reenviantes).
+
+3.  Formato de la Cabecera IPv6
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Versión|Clase d Tráfico|           Etiqueta de Flujo           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   Longitud de la Carga Útil   |Cabcera Siguien|Límite d Saltos|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                       Dirección Origen                        +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                       Dirección Destino                       +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Versión                    Número = 6 de versión del Protocolo
+                              Internet de 4 bits.
+
+   Clase de Tráfico           Campo clase de tráfico de 8 bits. Ver la
+                              sección 7.
+
+   Etiqueta de Flujo          Etiqueta de flujo de 20 bits. Ver la
+                              sección 6.
+
+Deering & Hinden           Track de Estándares                [Página 4]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Longitud de la Carga Útil  Entero sin signo de 16 bits. Longitud de
+                              la carga útil IPv6, es decir, el resto del
+                              paquete que sigue a esta cabecera IPv6, en
+                              octetos. (Notar que cualesquiera de las
+                              cabeceras de extensión [sección 4]
+                              presente es considerada parte de la carga
+                              útil, es decir, incluida en el conteo de
+                              la longitud).
+
+   Cabecera Siguiente         Selector de 8 bits. Identifica el tipo de
+                              cabecera que sigue inmediatamente a la
+                              cabecera IPv6. Utiliza los mismos valores
+                              que el campo Protocolo del IPv4 [RFC-1700
+                              et seq.].
+
+   Límite de Saltos           Entero sin signo de 8 bits. Decrementado
+                              en 1 por cada nodo que reenvía el paquete.
+                              Se descarta el paquete si el Límite de
+                              Saltos es decrementado hasta cero.
+
+   Dirección Origen           Dirección de 128 bits del originador del
+                              paquete. Ver la [ADDRARCH].
+
+   Dirección Destino          Dirección de 128 bits del recipiente
+                              pretendido del paquete (posiblemente no el
+                              último recipiente, si está presente una
+                              cabecera Enrutamiento). Ver la [ADDRARCH]
+                              y la sección 4.4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares                [Página 5]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+4. Cabeceras de Extensión IPv6
+
+   En el IPv6, la información de capa internet opcional se codifica en
+   cabeceras separadas que se pueden colocar entre la cabecera IPv6 y
+   la cabecera de capa superior dentro de un paquete. Hay un número
+   pequeño de tales cabeceras de extensión, cada una identificada por
+   un valor de Cabecera Siguiente distinto. Según lo ilustrado en estos
+   ejemplos, un paquete IPv6 puede llevar cero, una, o más cabeceras de
+   extensión, cada una identificada por el campo Cabecera Siguiente de
+   la cabecera precedente:
+
+   +---------------+------------------------
+   | Cabecera IPv6 | Cabecera TCP + datos
+   |               |
+   |Cabcera Sig. = |
+   |      TCP      |
+   +---------------+------------------------
+
+
+   +---------------+----------------+------------------------
+   | Cabecera IPv6 |Cabcera Enrutam.| Cabecera TCP + datos
+   |               |                |
+   |Cabcera Sig. = |Cabecera Sig. = |
+   | Enrutamiento  |      TCP       |
+   +---------------+----------------+------------------------
+
+
+   +---------------+----------------+-----------------+-----------------
+   | Cabecera IPv6 |Cabcera Enrutam.|Cabcera Fragmento|fragmento de Cab.
+   |               |                |                 |    TCP + datos
+   |Cabcera Sig. = |Cabecera Sig. = |Cabecera Sig. =  |
+   | Enrutamiento  |   Fragmento    |       TCP       |
+   +---------------+----------------+-----------------+-----------------
+
+   Con una excepción, las cabeceras de extensión no son examinadas ni
+   procesadas por ningún nodo a lo largo de la ruta de entrega de un
+   paquete, hasta que el paquete alcance el nodo (o cada uno del
+   conjunto de nodos, en el caso de multienvío) identificado en el campo
+   Dirección Destino de la cabecera IPv6. Allí, el demultiplexaje normal
+   en el campo Cabecera Siguiente de la cabecera IPv6 invoca el módulo
+   para procesar la primera cabecera de extensión, o la cabecera de capa
+   superior si no hay ninguna cabecera de extensión presente. El
+   contenido y la semántica de cada cabecera de extensión determinan si
+   se procede o no a la cabecera siguiente. Por lo tanto, las cabeceras
+   de extensión se deben procesar estrictamente en el orden que aparecen
+   en el paquete; un receptor no debe, por ejemplo, examinar a través de
+   un paquete buscando un tipo en particular de cabecera de extensión y
+   procesar esa cabecera antes de procesar todas las precedentes.
+
+
+
+Deering & Hinden           Track de Estándares                [Página 6]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   La excepción mencionada en el párrafo precedente es la cabecera
+   Opciones de Salto a Salto, la cual lleva información que debe ser
+   examinada y procesada por cada nodo a lo largo de la ruta de entrega
+   de un paquete, incluyendo los nodos de origen y de destino. La
+   cabecera Opciones de Salto a Salto, cuando está presente, debe seguir
+   inmediatamente a la cabecera IPv6. Su presencia es indicada por el
+   valor cero en el campo Cabecera Siguiente de la cabecera IPv6.
+
+   Si, como resultado de procesar una cabecera, un nodo necesita
+   proceder a la cabecera siguiente pero el valor Cabecera Siguiente en
+   la cabecera actual es desconocido por el nodo, debe descartar el
+   paquete y enviar un mensaje ICMP de Problema de Parámetro al origen
+   del paquete, con un valor Código ICMP de 1 ("encontrado tipo de
+   Cabecera Siguiente desconocido") y el campo Puntero ICMP conteniendo
+   el desplazamiento del valor desconocido dentro del paquete original.
+   La misma acción se debería tomar si un nodo encuentra un valor
+   Cabecera Siguiente de cero en cualquier cabecera con excepción de una
+   cabecera IPv6.
+
+   Cada cabecera de extensión es un entero múltiplo de 8 octetos de
+   largo, para conservar la alineación de 8 octetos para las cabeceras
+   subsiguientes. Los campos Multiocteto dentro de cada cabecera de
+   extensión se alinean en sus límites naturales, es decir, los campos
+   de ancho de n octetos son colocados en un entero múltiplo de n
+   octetos desde el inicio de la cabecera, para n = 1, 2, 4, o 8.
+
+   Una implementación completa del IPv6 comprende la implementación de
+   las siguientes cabeceras de extensión:
+
+           Opciones de Salto a Salto
+           Enrutamiento (Tipo 0)
+           Fragmento
+           Opciones de Destino
+           Autenticación
+           Seguridad del Encapsulado de la Carga Útil
+
+   Las primeras cuatro están especificadas en este documento; las
+   últimas dos están especificadas en la [RFC-2402] y la [RFC-2406],
+   respectivamente.
+
+4.1 Orden de las Cabeceras de Extensión
+
+   Cuando más de una cabecera de extensión se usa en un mismo paquete,
+   se recomienda que esas cabeceras aparezcan en el siguiente orden:
+
+           Cabecera IPv6
+           Cabecera Opciones de Salto a Salto
+           Cabecera Opciones de Destino (nota 1)
+           Cabecera Enrutamiento
+           Cabecera Fragmento
+
+Deering & Hinden           Track de Estándares                [Página 7]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+           Cabecera Autenticación (nota 2)
+           Cabecera Seguridad del Encapsulado de la Carga Útil (nota 2)
+           Cabecera Opciones de Destino (nota 3)
+           Cabecera de Capa Superior
+
+           nota 1: para las opciones a ser procesadas por el primer
+                   destino que aparece en el campo Dirección Destino
+                   IPv6 más los destinos subsiguientes listados en la
+                   Cabecera Enrutamiento.
+
+           nota 2: recomendaciones adicionales con respecto al orden
+                   relativo de las cabeceras Autenticación y Seguridad
+                   del Encapsulado de la Carga Útil se dan en la
+                   [RFC-2406].
+
+           nota 3: para las opciones a ser procesadas solo por el
+                   destino final del paquete.
+
+   Cada cabecera de extensión debe ocurrir solamente una vez, a
+   excepción de la cabecera Opciones de Destino la cual debe de ocurrir
+   a lo sumo dos veces (una vez antes de una cabecera Enrutamiento y la
+   otra vez antes de una cabecera de capa superior).
+
+   Si la cabecera de capa superior es otra cabecera IPv6 (en el caso de
+   que el IPv6 sea tunelizado o encapsulado en el IPv6), puede ser
+   seguida por sus propias cabeceras de extensión, las cuales están
+   separadamente sujetas a las mismas recomendaciones de orden.
+
+   Siempre y cuando se definan otras cabeceras de extensión, sus
+   restricciones de orden concerniente a las cabeceras arriba listadas
+   deben ser especificadas.
+
+   Los nodos IPv6 deben aceptar e intentar procesar cabeceras de
+   extensión en cualquier orden y cualquier número de veces que ocurran
+   en un mismo paquete, a excepción de la cabecera Opciones de Salto a
+   Salto la cual está restringida a aparecer sólo inmediatamente después
+   de una cabecera IPv6. No obstante, se aconseja fuertemente que los
+   originadores de paquetes IPv6 se apeguen al orden recomendado arriba
+   hasta y a menos que especificaciones subsiguientes corrijan esa
+   recomendación.
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares                [Página 8]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+4.2 Opciones
+
+   Dos de las cabeceras de extensión actualmente definidas -- la
+   cabecera Opciones de Salto a Salto y la cabecera Opciones de Destino
+   -- llevan un número variable de "opciones" codificadas tipo-longitud-
+   valor (TLV), de la siguiente forma:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- - - - - - - - -
+      |Tipo de Opción | Lon Datos Opc |Datos d la Opción
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- - - - - - - - -
+
+      Tipo de Opción       Identificador de 8 bits del tipo de opción.
+
+      Lon Datos Opc        Entero sin signo de 8 bits. Longitud del
+                           campo Datos de la Opción de esta opción, en
+                           octetos.
+
+      Datos de la Opción   Campo de longitud variable. Datos específicos
+                           del Tipo de Opción.
+
+   La secuencia de opciones dentro de una cabecera se deben procesar
+   estrictamente en el orden que aparecen en la cabecera; un receptor no
+   debe, por ejemplo, examinar a través de una cabecera buscando un tipo
+   en particular de opción y procesar esa opción antes de procesar todas
+   las precedentes.
+
+   Los identificadores Tipo de Opción se codifican internamente tales
+   que sus 2 bits de más alto orden especifican la acción que se debe
+   tomar si el nodo IPv6 en proceso no reconoce el Tipo de Opción:
+
+      00 - no tomar en cuenta esta opción y continuar procesando la
+           cabecera.
+
+      01 - descartar el paquete.
+
+      10 - descartar el paquete y, sin tener en cuenta si o no la
+           Dirección Destino del paquete fue una dirección multienvío,
+           enviar un mensaje ICMP Problema de Parámetro, Código 2, a la
+           Dirección Origen del paquete señalando el Tipo de Opción
+           desconocido.
+
+      11 - descartar el paquete y, solo si la Dirección Destino del
+           paquete no fue una dirección multienvío, enviar un mensaje
+           ICMP Problema de Parámetro, Código 2, a la Dirección Origen
+           del paquete señalando el Tipo de Opción desconocido.
+
+   El tercer bit de más alto orden del Tipo de Opción especifica si o no
+   los Datos de la Opción de esa opción pueden modificar el enrutado
+   hacia el destino final del paquete. Cuando una cabecera Autenticación
+
+
+Deering & Hinden           Track de Estándares                [Página 9]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   está presente en el paquete, para cualquier opción cuyos datos pueden
+   modificar el enrutado, su campo entero Datos de la Opción se debe
+   tratar como octetos de valor cero cuando se calcula o verifica el
+   valor de autenticidad del paquete.
+
+      0 - los Datos de la Opción no modifican el enrutado.
+
+      1 - los Datos de la Opción pueden modificar el enrutado.
+
+   Los tres bits de alto orden descritos arriba están para ser tratados
+   como parte del Tipo de Opción, no independientemente del Tipo de
+   Opción. Es decir, una opción en particular se identifica por un Tipo
+   de Opción de 8 bits completo, no sólo por los 5 bits de bajo orden
+   de un Tipo de Opción.
+
+   El mismo espacio de enumeración del Tipo de Opción se usa tanto para
+   la cabecera Opciones de Salto a Salto como para la cabecera Opciones
+   de Destino. Sin embargo, la especificación de una opción en
+   particular puede restringir su uso a solamente una de esas dos
+   cabeceras.
+
+   Las opciones individuales pueden tener requisitos específicos de
+   alineación, para asegurar que los valores multiocteto dentro de los
+   campos Datos de la Opción caigan en límites naturales. El requisito
+   de alineación de una opción se especifica usando la notación xn+y, lo
+   que significa que el Tipo de Opción debe aparecer en un entero
+   múltiplo de x octetos desde el inicio de la cabecera, más y octetos.
+   Por ejemplo:
+
+      2n    significa cualquier desplazamiento de 2 octetos a partir del
+            comienzo de la cabecera.
+      8n+2  significa cualquier desplazamiento de 8 octetos a partir del
+            comienzo de la cabecera, más 2 octetos.
+
+   Hay dos opciones de relleno las cuales se usan cuando es necesario
+   alinear opciones subsiguientes y rellenar la cabecera contenedora a
+   una longitud múltiplo de 8 octetos. Estas opciones de relleno deben
+   ser reconocidas por todas las implementaciones IPv6:
+
+   Opción Pad1 (requisito de alineación: ninguno)
+
+      +-+-+-+-+-+-+-+-+
+      |       0       |
+      +-+-+-+-+-+-+-+-+
+
+      NOTA! el formato de la opción Pad1 es un caso especial -- no tiene
+            los campos longitud y valor.
+
+      La opción Pad1 se usa para insertar un octeto de relleno dentro
+      del área de Opciones de una cabecera. Si se requiere más de un
+
+Deering & Hinden           Track de Estándares               [Página 10]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+      octeto de relleno, la opción PadN, descrita a continuación, se
+      debería usar, en lugar de múltiples opciones Pad1.
+
+   Opción PadN (requisito de alineación: ninguno)
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- - - - - - - - -
+      |       1       | Lon Datos Opc |Datos d la Opción
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- - - - - - - - -
+
+      La opción PadN se usa para insertar dos o más octetos de relleno
+      dentro del área de Opciones de una cabecera. Para N octetos de
+      relleno, el campo Lon Datos Opc contiene el valor N-2, y el campo
+      Datos de la Opción consiste en N-2 octetos de valor cero.
+
+   El Apéndice B contiene pautas de formateo para diseñar Opciones
+   nuevas.
+
+4.3 Cabecera Opciones de Salto a Salto
+
+   La cabecera Opciones de Salto a Salto se usa para llevar información
+   opcional que debe ser examinada por cada nodo a lo largo de la ruta
+   de entrega de un paquete. La cabecera Opciones de Salto a Salto se
+   identifica por un valor Cabecera Siguiente de 0 en la cabecera IPv6,
+   y tiene el siguiente formato:
+
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Cabcera Siguien|  Lon Cab Ext  |                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+    |                                                               |
+    .                                                               .
+    .                            Opciones                           .
+    .                                                               .
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Cabecera Siguiente   Selector de 8 bits. Identifica el tipo de
+                        cabecera que sigue inmediatamente a la cabecera
+                        Opciones de Salto a Salto. Utiliza los mismos
+                        valores que el campo Protocolo del IPv4 [RFC-
+                        1700 et seq.].
+
+   Lon Cab Ext          Entero sin signo de 8 bits. Longitud de la
+                        cabecera Opciones de Salto a Salto en unidades
+                        de 8 octetos, no incluye los primeros 8 octetos.
+
+   Opciones             Campo de longitud variable, de longitud tal que
+                        la cabecera Opciones de Salto a Salto completa
+                        es un entero múltiplo de 8 octetos de largo.
+                        Contiene una o más opciones codificadas TLV,
+                        como se describe en la sección 4.2.
+
+Deering & Hinden           Track de Estándares               [Página 11]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Las únicas opciones de salto a salto definidas en este documento son
+   las opciones Pad1 y PadN especificadas en la sección 4.2.
+
+4.4 Cabecera Enrutamiento
+
+   La cabecera Enrutamiento es utilizada por un origen IPv6 para listar
+   uno o más nodos intermedio a ser "visitados" en el camino hacia el
+   destino de un paquete. Esta función es muy similar a las opciones
+   Origen Impreciso y Registro de Ruta del IPv4. La cabecera
+   Enrutamiento se identifica por una Cabecera Siguiente de valor 43 en
+   la cabecera inmediatamente precedente, y tiene el siguiente formato:
+
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Cabcera Siguien|  Lon Cab Ext  |Tipo d Enrutami|Segmentos Dejad|
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    .                                                               .
+    .                   datos específicos del tipo                  .
+    .                                                               .
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Cabecera Siguiente           Selector de 8 bits. Identifica el tipo
+                                de cabecera que sigue inmediatamente a
+                                la cabecera Enrutamiento. Utiliza los
+                                mismos valores que el campo Protocolo
+                                del IPv4 [RFC-1700 et seq.].
+
+   Lon Cab Ext                  Entero sin signo de 8 bits. Longitud de
+                                la cabecera Enrutamiento en unidades de
+                                8 octetos, no incluye los primeros 8
+                                octetos.
+
+   Tipo de Enrutamiento         Identificador de 8 bits de una variante
+                                en particular de cabecera Enrutamiento.
+
+   Segmentos Dejados            Entero sin signo de 8 bits. Número de
+                                segmentos de ruta restantes, es decir,
+                                número de nodos intermedio
+                                explícitamente listados aún a ser
+                                visitados antes de alcanzar el destino
+                                final.
+
+   Datos específicos del tipo   Campo de longitud variable, de formato
+                                determinado por el Tipo de Enrutamiento,
+                                y de longitud tal que la cabecera
+                                Enrutamiento completa es un entero
+                                múltiplo de 8 octetos de largo.
+
+
+
+Deering & Hinden           Track de Estándares               [Página 12]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Si, al procesar un paquete recibido, un nodo encuentra una cabecera
+   Enrutamiento con un valor Tipo de Enrutamiento desconocido, el
+   comportamiento requerido del nodo depende del valor del campo
+   Segmentos Dejados, como sigue:
+
+      Si Segmentos Dejados es cero, el nodo debe ignorar la cabecera
+      Enrutamiento y proceder a procesar la siguiente cabecera en el
+      paquete, cuyo tipo se identifica por el campo Cabecera Siguiente
+      en la cabecera Enrutamiento.
+
+      Si Segmentos Dejados no es cero, el nodo debe descartar el paquete
+      y enviar un mensaje ICMP Problema de Parámetro, Código 0, a la
+      Dirección Origen del paquete, apuntando al Tipo de Enrutamiento
+      desconocido.
+
+   Si, después de procesar una cabecera Enrutamiento de un paquete
+   recibido, un nodo intermedio determina que el paquete será remitido
+   hacia un enlace cuya MTU de enlace es menor que el tamaño del
+   paquete, el nodo debe descartar el paquete y enviar un mensaje ICMP
+   Paquete Demasiado Grande a la Dirección Origen del paquete.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 13]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   La cabecera Enrutamiento de Tipo 0 tiene el siguiente formato:
+
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Cabcera Siguien|  Lon Cab Ext  |Tipo Enrutami=0|Segmentos Dejad|
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                            Reservado                          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    +                                                               +
+    |                                                               |
+    +                          Dirección[1]                         +
+    |                                                               |
+    +                                                               +
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    +                                                               +
+    |                                                               |
+    +                          Dirección[2]                         +
+    |                                                               |
+    +                                                               +
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    .                               .                               .
+    .                               .                               .
+    .                               .                               .
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    +                                                               +
+    |                                                               |
+    +                          Dirección[n]                         +
+    |                                                               |
+    +                                                               +
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Cabecera Siguiente     Selector de 8 bits. Identifica el tipo de
+                          cabecera que sigue inmediatamente a la
+                          cabecera Enrutamiento. Utiliza los mismos
+                          valores que el campo Protocolo del IPv4 [RFC-
+                          1700 et seq.].
+
+   Lon Cab Ext            Entero sin signo de 8 bits. Longitud de la
+                          cabecera Enrutamiento en unidades de 8
+                          octetos, sin incluir los primeros 8 octetos.
+                          Para la cabecera Enrutamiento de Tipo 0, Lon
+                          Cab Ext es igual a dos veces el número de
+                          direcciones en la cabecera.
+
+   Tipo de Enrutamiento   0.
+
+Deering & Hinden           Track de Estándares               [Página 14]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Segmentos Dejados      Entero sin signo de 8 bits. Número de
+                          segmentos de ruta restantes, es decir, número
+                          de nodos intermedio explícitamente listados
+                          aún a ser visitados antes de alcanzar el
+                          destino final.
+
+   Reservado              Campo reservado de 32 bits. Inicializado a
+                          cero para la transmisión; ignorado en la
+                          recepción.
+
+   Dirección[1..n]        Vector de direcciones de 128 bits, numerados
+                          desde 1 hasta n.
+
+   Las direcciones multienvío no deben aparecer en una cabecera
+   Enrutamiento de Tipo 0, o en el campo Dirección Destino IPv6 de un
+   paquete que lleva una cabecera Enrutamiento de Tipo 0.
+
+   Una cabecera Enrutamiento no se examina o procesa hasta que alcance
+   el nodo identificado en el campo Dirección Destino de la cabecera
+   IPv6. En ese nodo, al despachar el campo Cabecera Siguiente de la
+   cabecera inmediatamente precedente ocasiona que el módulo cabecera
+   Enrutamiento sea invocado, el cual, en el caso de Enrutamiento Tipo
+   0, lleva a cabo el siguiente algoritmo:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 15]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   si Segmentos Dejados = 0 {
+      proceder a procesar la cabecera siguiente en el paquete, cuyo tipo
+      se identifica por el campo Cabecera Siguiente en la cabecera
+      Enrutamiento
+   }
+   sino si Lon Cab Ext es impar {
+         enviar un mensaje ICMP Problema de Parámetro, Código 0, a la
+         Dirección Origen, apuntando al campo Lon Cab Ext, y descartar
+         el paquete
+   }
+   sino {
+      calcular n, el número de direcciones en la cabecera Enrutamiento,
+      al dividir Lon Cab Ext por 2
+
+      si Segmentos Dejados es mayor que n {
+         enviar un mensaje ICMP Problema de Parámetro, Código 0, a la
+         Dirección de Origen, apuntando al campo Segmentos Dejados, y
+         descartar el paquete
+      }
+      sino {
+         decrementar Segmentos Dejados en 1;
+         calcular i, el índice de la dirección siguiente a ser visitado
+         en el vector de dirección, substrayendo Segmentos Dejados de n
+
+         si la Dirección [i] o la Dirección Destino IPv6 es multienvío {
+            descartar el paquete
+         }
+         sino {
+            intercambiar la Dirección Destino IPv6 y la Dirección [i]
+
+            si el Límite de Saltos es menor que o iguala a 1 {
+               enviar un mensaje ICMP Tiempo Excedido -- Límite de
+               Saltos Excedido en Transito a la Dirección Origen y
+               descartar el paquete
+            }
+            sino {
+               decrementar el Límite de Saltos en 1
+
+               resometer el paquete al módulo IPv6 para la transmisión
+               hacia el nuevo destino
+            }
+         }
+      }
+   }
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 16]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Como un ejemplo de los efectos del algoritmo de arriba, considerar el
+   caso de un nodo origen S que envía un paquete al nodo de destino D,
+   usando una cabecera Enrutamiento para causar que el paquete sea
+   enrutado vía los nodos intermedio I1, I2, e I3. Los valores de los
+   campos pertinentes de la cabecera IPv6 y de la cabecera Enrutamiento
+   en cada segmento de la ruta de entrega serían como sigue:
+
+   Conforme el paquete viaja de S a I1:
+  
+        Dirección de Origen = S             Lon Cab Ext = 6
+        Dirección de Destino = I1           Segmentos Dejados = 3
+                                            Dirección[1] = I2
+                                            Dirección[2] = I3
+                                            Dirección[3] = D
+  
+   Conforme el paquete viaja de I1 a I2:
+  
+        Dirección de Origen = S             Lon Cab Ext = 6
+        Dirección de Destino = I2           Segmentos Dejados = 2
+                                            Dirección[1] = I1
+                                            Dirección[2] = I3
+                                            Dirección[3] = D
+  
+   Conforme el paquete viaja de I2 a I3:
+  
+        Dirección de Origen = S             Lon Cab Ext = 6
+        Dirección de Destino = I3           Segmentos Dejados = 1
+                                            Dirección[1] = I1
+                                            Dirección[2] = I2
+                                            Dirección[3] = D
+  
+   Conforme el paquete viaja de I3 a D:
+  
+        Dirección de Origen = S             Lon Cab Ext = 6
+        Dirección de Destino = D            Segmentos Dejados = 0
+                                            Dirección[1] = I1
+                                            Dirección[2] = I2
+                                            Dirección[3] = I3
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 17]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+4.5 Cabecera Fragmento
+
+   La cabecera Fragmento es utilizada por un origen IPv6 para enviar un
+   paquete más grande de lo que cabría en la MTU de la ruta hacia su
+   destino. (Nota: a diferencia del IPv4, la fragmentación en el IPv6
+   sólo se lleva a cabo por los nodos origen, no por los enrutadores a
+   lo largo de la ruta de entrega de un paquete -- ver sección 5.) La
+   cabecera Fragmento se identifica por un valor Cabecera Siguiente de
+   44 en la cabecera inmediatamente precedente, y tiene el siguiente
+   formato:
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Cabcera Siguien|   Reservado   |Dsplazamiento dl Fragment|Res|M|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                         Identificación                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Cabecera Siguiente             Selector de 8 bits. Identifica el tipo
+                                  de cabecera inicial de la Parte
+                                  Fragmentable del paquete original
+                                  (definido abajo). Usa los mismos
+                                  valores que el campo Protocolo del
+                                  IPv4 [EL RFC-1700 ET SEQ.].
+
+   Reservado                      Campo reservado de 8 bits.
+                                  Inicializado a cero para la
+                                  transmisión; ignorado en la recepción.
+
+   Desplazamiento del Fragmento   Entero sin signo de 13 bits. El
+                                  desplazamiento, en unidades de 8
+                                  octetos, de los datos que siguen a
+                                  esta cabecera, relativo al comienzo de
+                                  la Parte Fragmentable del paquete
+                                  original.
+
+   Res                            Campo reservado de 2 bits.
+                                  Inicializado a cero para la
+                                  transmisión; ignorado en la recepción.
+
+   Bandera M                      1 = más fragmentos;
+                                  0 = último fragmento.
+
+   Identificación                 32 bits. Ver descripción abajo.
+
+   Para enviar un paquete que es demasiado grande para caber en la MTU
+   de la ruta hacia su destino, un nodo origen puede dividir el paquete
+   en fragmentos y enviar cada fragmento como un paquete separado, para
+   ser reensamblado en el receptor.
+
+
+
+Deering & Hinden           Track de Estándares               [Página 18]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Por cada paquete que será fragmentado, el nodo origen genera un valor
+   Identificación. La Identificación debe ser diferente que el de
+   cualquier otro paquete fragmentado enviado recientemente* con la
+   misma Dirección Origen y Dirección Destino. Si una cabecera
+   Enrutamiento está presente, la Dirección Destino de interés es la del
+   destino final.
+
+      * "recientemente" significa dentro del máximo tiempo de vida
+        probable de un paquete, incluyendo el tiempo de tránsito del
+        origen hacia el destino y el tiempo gastado esperando el
+        reensemblaje con otros fragmentos del mismo paquete. Sin
+        embargo, no se requiere que un nodo origen conozca el máximo
+        tiempo de vida de un paquete. Más bien, se asume que el
+        requisito puede encontrarse manteniendo el valor Identificación
+        como un simple, contador "envoltura alrededor", de 32 bits,
+        incrementado cada vez que un paquete debe fragmentarse. Es una
+        opción de implementación si para mantener a un solo contador
+        para el nodo o contadores múltiples, por ejemplo, uno para cada
+        una de las posibles direcciones origen del nodo, o uno para cada
+        combinación (dirección origen, dirección destino) activa.
+
+   El paquete inicial, grande, no fragmentado es referido como el
+   "paquete original", y se considera que consiste en dos partes, tal
+   como se ilustra:
+
+   paquete original:
+
+   +------------------+----------------------//-----------------------+
+   |      Parte       |                    Parte                      |
+   |  No Fragmentable |                 Fragmentable                  |
+   +------------------+----------------------//-----------------------+
+
+      La Parte No Fragmentable consiste en la cabecera IPv6 más
+      cualesquiera de las cabeceras de extensión que debe procesarse por
+      nodos en camino hacia el destino, es decir, todas las cabeceras e
+      incluso la cabecera Enrutamiento si esta presente, sino la
+      cabecera Opciones de Salto a Salto si esta presente, sino ninguna
+      de las cabeceras de extensión.
+
+      La Parte Fragmentable consiste en el resto del paquete, es decir,
+      cualquiera de las cabeceras de extensión que necesita que sólo se
+      procese por el nodo(s) destino final, más la cabecera de capa
+      superior y los datos.
+
+   La Parte Fragmentable del paquete original es dividida en fragmentos,
+   cada uno, excepto posiblemente el último ("el de la extrema
+   derecha"), siendo un entero múltiplo de 8 octetos de largo. Los
+   fragmentos se transmiten en "paquetes fragmento" separados tal como
+   se ilustra:
+
+
+Deering & Hinden           Track de Estándares               [Página 19]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   paquete original:
+
+   +------------------+--------------+--------------+--//--+----------+
+   |      Parte       |    primer    |    segundo   |      |  último  |
+   |  No Fragmentable |   fragmento  |   fragmento  | .... | fragmento|
+   +------------------+--------------+--------------+--//--+----------+
+
+   paquetes fragmento:
+
+   +------------------+--------+--------------+
+   |      Parte       |Cabecera|    primer    |
+   |  No Fragmentable |Fragment|   fragmento  |
+   +------------------+--------+--------------+
+
+   +------------------+--------+--------------+
+   |      Parte       |Cabecera|    segundo   |
+   |  No Fragmentable |Fragment|   fragmento  |
+   +------------------+--------+--------------+
+                         o
+                         o
+                         o
+   +------------------+--------+----------+
+   |      Parte       |Cabecera|  último  |
+   |  No Fragmentable |Fragment| fragmento|
+   +------------------+--------+----------+
+
+   Cada paquete fragmento está compuesto de:
+
+      (1) La Parte No Fragmentable del paquete original, con la Longitud
+          de la Carga Útil de la cabecera IPv6 original cambiada para
+          contener la longitud de tan sólo este paquete fragmento
+          (excluyendo la longitud de la propia cabecera IPv6), y el
+          campo Cabecera Siguiente de la última cabecera de la Parte No
+          Fragmentable cambiado a 44.
+
+      (2) Una cabecera Fragmento conteniendo:
+
+               El valor Siguiente Cabecera que identifica la primera
+               cabecera de la Parte Fragmentable del paquete original.
+
+               Un Desplazamiento del Fragmento que contiene el
+               desplazamiento del fragmento, en unidades de 8 octetos,
+               relativo al comienzo de la Parte Fragmentable del paquete
+               original. El Desplazamiento del Fragmento del primer ("el
+               de la extrema izquierda") fragmento es 0.
+
+               Una bandera M de valor 0 si el fragmento es el último
+               ("el de la extrema derecha"), sino una bandera M de valor
+               1.
+
+
+Deering & Hinden           Track de Estándares               [Página 20]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+               El valor Identificación generado para el paquete
+               original.
+
+      (3) El propio fragmento.
+
+   Deben escogerse las longitudes de los fragmentos tal que los paquetes
+   fragmento resultantes quepan dentro de la MTU de la ruta hacia el(los)
+   destino(s) del paquete.
+
+   En el destino, se reensamblan los paquetes fragmento en su forma
+   original, no fragmentada, tal como se ilustra:
+
+   paquete original reensamblado:
+
+   +------------------+----------------------//-----------------------+
+   |      Parte       |                    Parte                      |
+   |  No Fragmentable |                 Fragmentable                  |
+   +------------------+----------------------//-----------------------+
+
+Las siguientes reglas gobiernan el reensamblaje:
+
+      Un paquete original sólo se reensambla a partir de paquetes
+      fragmento que tienen la misma Dirección Origen, Dirección Destino,
+      e Identificación del Fragmento.
+
+      La Parte No Fragmentable del paquete reensamblado consiste en
+      todas las cabeceras, pero sin incluir, la cabecera Fragmento del
+      primer paquete fragmento (es decir, el paquete cuyo Desplazamiento
+      del Fragmento es cero), con los siguiente dos cambios:
+
+         El campo Cabecera Siguiente de la última cabecera de la Parte
+         No Fragmentable se obtiene del campo Cabecera Siguiente de la
+         cabecera Fragmento del primer fragmento.
+
+         Se calcula la Longitud de la Carga Útil del paquete
+         reensamblado a partir de la longitud de la Parte No
+         Fragmentable y de la longitud y desplazamiento del último
+         fragmento. Por ejemplo, una fórmula para calcular la Longitud
+         de la Carga Útil del paquete original reensamblado es:
+
+           LCU.orig = LCU.inicial - LF.inicial - 8 + (8*DF.final) +
+                      LF.final
+
+           donde
+           LCU.orig    = campo Longitud de la Carga Útil del paquete
+                         reensamblado.
+           LCU.inicial = campo Longitud de la Carga Útil del primer
+                         paquete fragmento.
+           LF.inicial  = longitud del fragmento siguiente a la cabecera
+                         Fragmento del primer paquete fragmento.
+
+Deering & Hinden           Track de Estándares               [Página 21]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+           DF.final    = campo Desplazamiento del Fragmento de la
+                         cabecera Fragmento del último paquete
+                         fragmento.
+           LF.final    = longitud del fragmento siguiente a la cabecera
+                         Fragmento del último paquete fragmento.
+
+      La Parte Fragmentable del paquete reensamblado se construye a
+      partir de los fragmentos siguientes a las cabeceras Fragmento
+      dentro de cada uno de los paquetes fragmento. La longitud de cada
+      fragmento es calculada substrayendo de la Longitud de la Carga
+      Útil del paquete la longitud de las cabeceras entre la cabecera
+      IPv6 y el propio fragmento, su posición relativa en la Parte
+      Fragmentable se calcula a partir de su valor Desplazamiento del
+      Fragmento.
+
+      La cabecera Fragmento no está presente en el paquete reensamblado,
+      final.
+
+   Las siguientes condiciones de error pueden originarse al reensamblar
+   paquetes fragmentados:
+
+      Si se reciben fragmentos insuficientes para completar el
+      reensamblaje de un paquete dentro de los 60 segundos a partir de
+      la recepción del primer fragmento en llegar de ese paquete, el
+      reensamblaje de ese paquete debe abandonarse y deben descartarse
+      todos los fragmentos que se han recibido para ese paquete. Si el
+      primer fragmento (es decir, el único con un Desplazamiento del
+      Fragmento de cero) se ha recibido, un mensaje ICMP Tiempo Excedido
+      -- Tiempo Excedido para el Reensamblaje del Fragmento, debe
+      enviarse al origen de ese fragmento.
+
+      Si la longitud de un fragmento, tal como se dedujo a partir del
+      campo Longitud de la Carga Útil del paquete fragmento, no es un
+      múltiplo de 8 octetos y la bandera M de ese fragmento es 1,
+      entonces ese fragmento debe descartarse y un mensaje ICMP Problema
+      de Parámetro, Código 0, debe enviarse al origen del fragmento,
+      apuntando al campo Longitud de la Carga Útil del paquete
+      fragmento.
+
+      Si la longitud y el desplazamiento de un fragmento son tales que
+      la Longitud de la Carga Útil del paquete reensamblado de ese
+      fragmento excedería los 65,535 octetos, entonces ese fragmento
+      debe descartarse y un mensaje ICMP Problema de Parámetro, Código
+      0, debe enviarse al origen del fragmento, apuntando al campo
+      Desplazamiento del Fragmento del paquete fragmento.
+
+   No se espera que las siguientes condiciones ocurran, pero no se
+   consideran errores si lo hacen:
+
+
+
+Deering & Hinden           Track de Estándares               [Página 22]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+      El número y contenido de las cabeceras que preceden a la cabecera
+      Fragmento de fragmentos diferentes del mismo paquete original
+      pueden diferir. Cualesquiera de las cabeceras que estén presentes,
+      precediendo a la cabecera Fragmento en cada paquete fragmento, se
+      procesan cuando los paquetes llegan, previamente a que los
+      fragmentos hagan cola para el reensamblaje. Sólo aquellas
+      cabeceras en el paquete fragmento de Desplazamiento cero se
+      retienen en el paquete reensamblado.
+
+      Los valores Cabecera Siguiente en las cabeceras Fragmento de
+      fragmentos diferentes del mismo paquete original pueden diferir.
+      Sólo el valor del paquete fragmento de Desplazamiento cero se usa
+      para el reensamblaje.
+
+4.6 Cabecera Opciones de Destino
+
+   La cabecera Opciones de Destino es usada para llevar información
+   opcional que necesita ser examinada solamente por el(los) nodo(s)
+   destino del paquete. La cabecera Opciones de Destino es identificada
+   por un valor Cabecera Siguiente de 60 en la cabecera inmediatamente
+   precedente, y tiene el siguiente formato:
+
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Cabcera Siguien|  Lon Cab Ext  |                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+    |                                                               |
+    .                                                               .
+    .                            Opciones                           .
+    .                                                               .
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Cabecera Siguiente      Selector de 8 bits. Identifica el tipo de
+                           cabecera que sigue inmediatamente a la
+                           cabecera Opciones de Destino. Utiliza los
+                           mismos valores que el campo Protocolo del
+                           IPv4 [RFC-1700 et seq.].
+
+   Lon Cab Ext             Entero sin signo de 8 bits. Longitud de la
+                           cabecera Opciones de Destino en unidades de 8
+                           octetos, no incluye los primeros 8 octetos.
+
+   Opciones                Campo de longitud variable, de longitud tal
+                           que la cabecera Opciones de Destino completa
+                           es un entero múltiplo de 8 octetos de largo.
+                           Contiene uno o más opciones codificadas TLV,
+                           tal como se describe en la sección 4.2.
+
+   Las únicas opciones de destino definidas en este documento son las
+   opciones Pad1 y PadN especificadas en la sección 4.2.
+
+Deering & Hinden           Track de Estándares               [Página 23]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Notar que hay dos posibles maneras de codificar información de
+   destino opcional en un paquete IPv6: como una opción en la cabecera
+   Opciones de Destino, o como una cabecera de extensión separada. La
+   cabecera Fragmento y la cabecera Autenticación son ejemplos de la más
+   reciente propuesta. Qué propuesta puede ser usada depende de qué
+   acción es deseada de un nodo destino que no entiende la información
+   opcional:
+
+      o  Si la acción deseada es que el nodo destino descarte el paquete
+         y, sólo si la Dirección Destino del paquete no es una dirección
+         multienvío, enviar un mensaje ICMP Tipo No reconocido a la
+         Dirección Origen del paquete, luego la información puede ser
+         codificada como una cabecera separada o como una opción en la
+         cabecera Opciones de Destino cuyo Tipo de Opción tiene el valor
+         11 en sus dos bits de más alto orden. La elección puede
+         depender de factores tales como cual toma menos octetos, o cual
+         rinde mejor alineación o más eficiente análisis.
+
+      o  Si alguna otra acción es deseada, la información debe ser
+         codificada como una opción en la cabecera Opciones de Destino
+         cuyo Tipo de Opción tiene el valor 00, 01, o 10 en sus dos bits
+         de más alto orden, especificando la acción deseada (ver sección
+         4.2).
+
+4.7 Cabecera No Hay Siguiente
+
+   El valor 59 en el campo Cabecera Siguiente de una cabecera IPv6 o de
+   cualquier cabecera de extensión indica que nada hay siguiendo esa
+   cabecera. Si el campo Longitud de la Carga Útil de la cabecera IPv6
+   indica la presencia de octetos más allá del final de una cabecera
+   cuyo campo Cabecera Siguiente contiene 59, esos octetos deben
+   ignorarse, y pasarse inalterados si el paquete se reenvía.
+
+5. Cuestiones de Tamaño del Paquete
+
+   El IPv6 requiere que cada enlace en la internet tenga una MTU de 1280
+   octetos o mayor. En cualquier enlace que no pueda llevarse un paquete
+   de 1280 octetos en una pieza, debe proporcionarse fragmentación y
+   reensamblaje especifico al enlace en una capa debajo del IPv6.
+
+   Los Enlaces que tienen una MTU configurable (por ejemplo, enlaces PPP
+   [RFC-1661]) deben configurarse para tener una MTU de por lo menos
+   1280 octetos; se recomienda que sean configurados con una MTU de 1500
+   octetos o mayor, para alojar posibles encapsulaciones (es decir,
+   tunelizar) sin incurrir en la fragmentación de la capa IPv6.
+
+   De cada enlace al cuál un nodo se conecta directamente, el nodo debe
+   poder aceptar paquetes tan grandes como la MTU de ese enlace.
+
+
+
+Deering & Hinden           Track de Estándares               [Página 24]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Se recomienda fuertemente que los nodos IPv6 implementen el
+   Descubrimiento de la MTU de la Ruta [RFC-1981] con el propósito de
+   descubrir y tomar ventaja de las rutas con MTUs mayores que 1280
+   octetos. Sin embargo, una implementación IPv6 mínima (por ejemplo, en
+   una ROM de inicio) puede restringirse simplemente a enviar paquetes
+   no más grandes que 1280 octetos, y omitir la implementación del
+   Descubrimiento de la MTU de la Ruta.
+
+   Con el propósito de enviar un paquete más grande que la MTU de la
+   ruta, un nodo puede utilizar la cabecera Fragmento IPv6 para
+   fragmentar el paquete en el origen y tenerlo reensamblado en el(los)
+   destino(s). Sin embargo, el uso de tal fragmentación se desalienta en
+   cualquier aplicación que pueda ajustar sus paquetes para satisfacer
+   la MTU de la ruta medida (es decir, por debajo de los 1280 octetos).
+
+   Un nodo debe poder aceptar un paquete fragmentado que, después del
+   reensamblaje, sea tan grande como de 1500 octetos. Se permite a un
+   nodo aceptar paquetes fragmentados de tal manera que reensamblan a
+   más de 1500 octetos. Un protocolo o aplicación de capa superior que
+   depende de la fragmentación IPv6 para enviar paquetes más grandes
+   que la MTU de una ruta no debe enviar paquetes más grandes que 1500
+   octetos a menos que tenga la certidumbre que el destino es capaz
+   reensamblar paquetes de esos tamaños tan grandes.
+
+   En contestación a un paquete IPv6 que se envía a un destino IPv4 (es
+   decir, un paquete que experimenta la traducción del IPv6 al IPv4), el
+   nodo IPv6 originante puede recibir un mensaje ICMP Paquete Demasiado
+   Grande reportando de una MTU del Salto Siguiente menor a 1280. En ese
+   caso, no se exige que el nodo IPv6 reduzca el tamaño de los paquetes
+   subsiguientes a menos de 1280, pero debe incluir una cabecera
+   Fragmento en esos paquetes para que el enrutador traductor de IPv6 a
+   IPv4 pueda obtener un valor Identificación apropiado para usar en los
+   fragmentos IPv4resultantes. Note que esto significa que la carga útil
+   puede tener que ser reducida a 1232 octetos (1280 menos 40 para la
+   cabecera IPv6 y 8 para la cabecera Fragmento), y más pequeña todavía
+   si se usan cabeceras de extensión adicionales.
+
+6. Etiquetas de Flujo
+
+   El campo Etiqueta de Flujo de 20 bits en la cabecera IPv6 puede ser
+   usado por un origen para etiquetar secuencias de paquetes para los
+   cuales solicita un manejo especial por los enrutadores IPv6, tal como
+   la calidad de servicio no estándar o el servicio en "tiempo real".
+   Este aspecto del IPv6 está, al momento de escribir, todavía
+   experimental y sujeto a cambio conforme los requisitos para dar
+   soporte a flujos en la Internet se vuelvan más claros. Se exige a los
+   hosts o a los enrutadores que no dan soporte a las funciones del
+   campo Etiqueta de Flujo poner el campo a cero al originar un paquete,
+   pasar el campo inalterado al reenviar un paquete, e ignorar el campo
+   al recibir un paquete.
+
+Deering & Hinden           Track de Estándares               [Página 25]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   El Apéndice A describe la semántica y uso del campo etiqueta de flujo
+   pretendido en vigencia.
+
+7. Clases de Tráfico
+
+   El campo de 8 bits Clase de Tráfico en la cabecera IPv6 está
+   disponible para usarse por nodos originantes y/o enrutadores
+   reenviantes para identificar y distinguir entre las diferentes clases
+   o prioridades de paquetes IPv6. En el momento en que esta
+   especificación está siendo escrita, hay un cierto numero de
+   experimentos en camino en cuanto al uso de los bits Tipo de Servicio
+   IPv4 y/o Anterioridad para proporcionar varias formas de "servicio
+   diferenciado" para paquetes IP, además de a través del uso de un
+   flujo establecido explícito. El campo Clase de Tráfico en la cabecera
+   IPv6 esta proyectado para permitir similar funcionalidad que será
+   soportada en el IPv6.
+
+   Se espera que esos experimentos conduzcan eventualmente hacia un
+   acuerdo en que orden las clasificaciones de tráfico son mas útiles
+   para los paquetes IP. Las definiciones detalladas de la sintaxis y
+   semántica de todos o algunos de los bits Clase de Tráfico IPv6, si es
+   experimental o proyectado para eventual estandarización, serán
+   proporcionados en documentos separados.
+
+   Los siguientes requisitos generales se aplican al campo Clase de
+   Tráfico:
+
+      o  La interface de servicio para el servicio IPv6 dentro de un
+         nodo debe proporcionar un medio para que un protocolo de capa
+         superior proporcione el valor de los bits Clase de Tráfico en
+         los paquetes originados por ese protocolo de capa superior. El
+         valor por defecto debe ser cero para todos los 8 bits.
+
+      o  Los nodos que soportan un uso (experimental o estándar
+         eventual) especifico de algunos o todos los bits Clase de
+         Tráfico se les permite cambiar el valor de esos bits en los
+         paquetes que ellos originan, reenvían, o reciben, como sea
+         requerido para ese uso específico. Los nodos deben ignorar y
+         dejar sin alterar a cualesquiera de los bits del campo Clase de
+         Tráfico para los cuales no dan soporte a un uso específico.
+
+      o  Un protocolo de capa superior no debe asumir que el valor de
+         los bits Clase de Tráfico en un paquete recibido son los mimos
+         que el valor enviado por el origen del paquete.
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 26]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+8. Problemas de Protocolo de Capa Superior
+
+8.1 Sumas de Verificación de Capa Superior
+
+   Cualquier protocolo de transporte u otro de capa superior que incluya
+   las direcciones de la cabecera IP en su cálculo de suma de
+   verificación debe modificarse para el uso sobre el IPv6, para incluir
+   las direcciones IPv6 de 128 bits en lugar de las direcciones IPv4 de
+   32 bits. En particular, la siguiente ilustración muestra la "pseudo
+   cabecera" TCP y UDP para el IPv6:
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                       Dirección Origen                        +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                       Dirección Destino                       +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |             Longitud del Paquete de Capa Superior             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                      cero                     |Cabcera Siguien|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+      o  Si el paquete IPv6 contiene una cabecera Enrutamiento, la
+         Dirección Destino usada en la pseudo cabecera es la del destino
+         final. En el nodo originante, esa dirección estará en el último
+         elemento de la cabecera Enrutamiento; en el(los) receptor(res),
+         esa dirección estará en el campo Dirección Destino de la
+         cabecera IPv6.
+
+      o  El valor Cabecera Siguiente en la pseudo cabecera identifica el
+         protocolo de capa superior (por ejemplo, 6 para el TCP, o 17
+         para el UDP). Diferirá del valor Cabecera Siguiente en la
+         cabecera IPv6 si hay cabeceras de extensión entre la cabecera
+         IPv6 y la cabecera de capa superior.
+
+      o  La Longitud del Paquete de Capa Superior en la pseudo cabecera
+         es la longitud de la cabecera de capa superior y los datos (por
+         ejemplo, la cabecera TCP más los datos TCP). Algunos protocolos
+
+
+Deering & Hinden           Track de Estándares               [Página 27]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+         de capa superior llevan su propia información de longitud (por
+         ejemplo, el campo Longitud en la cabecera UDP); para tales
+         protocolos, esa es la longitud usada en la pseudo cabecera.
+         Otros protocolos (como el TCP) no llevan su propia información
+         de longitud, en cuyo caso la longitud usada en la pseudo
+         cabecera es la Longitud de la Carga Útil de la cabecera IPv6,
+         menos la longitud de cualquier cabecera de extensión presente
+         entre la cabecera IPv6 y la cabecera de capa superior.
+
+      o  A diferencia del IPv4, cuando los paquetes UDP son originados
+         por un nodo IPv6, la suma de verificación UDP no es opcional.
+         Es decir, siempre que se origine un paquete UDP, un nodo IPv6
+         debe calcular una suma de verificación UDP sobre el paquete y
+         la pseudo cabecera, y, si ese cálculo produce un resultado de
+         cero, debe cambiarse al hexadecimal FFFF para la colocación en
+         la cabecera UDP. Los receptores IPv6 deben descartar los
+         paquetes UDP que contengan una suma de verificación cero, y
+         deben registrar el error.
+
+   La versión IPv6 del ICPM [ICMPv6] incluye la pseudo cabecera citada
+   arriba en su cálculo de suma de verificación; éste es un cambio a
+   diferencia de la versión IPv4 del ICMP, el cual no incluye una pseudo
+   cabecera en su suma de verificación. La razón para el cambio es para
+   proteger al ICMP de una mala entrega o corrupción de aquellos campos
+   de la cabecera IPv6 de los que depende, los qué, a diferencia del
+   IPv4, no son cubiertos por una suma de verificación de la capa
+   internet. El campo Cabecera Siguiente en la pseudo cabecera para el
+   ICMP contiene el valor 58, que identifica la versión IPv6 del ICMP.
+
+8.2 Tiempo de Vida Máximo de un Paquete
+
+   A diferencia del IPv4, no se exigen a los nodos IPv6 cumplir con el
+   tiempo de vida máximo de un paquete. Ésa es la razón por la que el
+   campo "Tiempo de Vida" del IPv4 se renombró a "Límite de Saltos" en
+   el IPv6. En la práctica, muy pocas, si alguna, implementaciones IPv4
+   adoptan el requisito de limitar el tiempo de vida de un paquete, asi
+   que esto no es un cambio en la práctica. Cualquier protocolo de capa
+   superior que depende de la capa internet (ya sea IPv4 o IPv6) para
+   limitar el tiempo de vida de un paquete debe actualizarse para
+   proporcionar sus propios mecanismos de detección y descarte de
+   paquetes obsoletos.
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 28]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+8.3 Tamaño Máximo de la Carga Útil de Capa Superior
+
+   Al calcular el tamaño máximo de carga útil disponible para los datos
+   de capa superior, un protocolo de capa superior debe tener en cuenta
+   el tamaño más grande de la cabecera IPv6relativo a la cabecera IPv4.
+   Por ejemplo, en el IPv4, la opción MSS del TCP se calcula como el
+   tamaño máximo de paquete (un valor por defecto o un valor aprendido a
+   través del Descubrimiento de la MTU de la Ruta) menos 40 octetos (20
+   octetos para la longitud mínima de la cabecera IPv4 y 20 octetos para
+   la longitud mínima de la cabecera TCP). Al usar TCP sobre IPv6, el
+   MSS debe calcularse como el tamaño máximo de paquete menos 60
+   octetos, puesto que la longitud mínima de la cabecera IPv6 (es decir,
+   una cabecera IPv6 sin cabeceras de extensión) es 20 octetos más larga
+   que la longitud mínima de la cabecera IPv4.
+
+8.4 Contestando a Paquetes que Llevan Cabeceras Enrutamiento
+
+   Cuando un protocolo de capa superior envía uno o más paquetes en
+   contestación a un paquete recibido que incluía una cabecera
+   Enrutamiento, el(los) paquete(s) respuesta no debe(n) incluir una
+   cabecera Enrutamiento que se derivó automáticamente "invirtiendo" la
+   cabecera Enrutamiento recibida A MENOS QUE se hayan verificado la
+   integridad y autenticidad tanto de la Dirección Origen como de la
+   cabecera Enrutamiento recibida (por ejemplo, mediante el uso de una
+   cabecera Autenticación en el paquete recibido). En otras palabras, se
+   permiten sólo los siguientes tipos de paquetes en contestación a un
+   paquete recibido que lleva una cabecera Enrutamiento:
+
+      o  Los paquetes respuesta que no llevan cabeceras Enrutamiento.
+
+      o  Los paquetes respuesta que llevan cabeceras Enrutamiento que NO
+         se derivaron invirtiendo la cabecera Enrutamiento del paquete
+         recibido (por ejemplo, una cabecera Enrutamiento proporcionada
+         por configuración local).
+
+      o  Los paquetes respuesta que llevan cabeceras Enrutamiento que se
+         derivaron invirtiendo la cabecera Enrutamiento del paquete
+         recibido SI Y SÓLO SI la integridad y autenticidad de la
+         Dirección Origen y de la cabecera Enrutamiento del paquete
+         recibido han sido verificadas por el contestador.
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 29]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+Apéndice A. Uso y Semántica del Campo Etiqueta de Flujo
+
+   Un flujo es una secuencia de paquetes enviada desde un origen
+   determinado hacia un destino (unienvío o multienvío) determinado para
+   el cual el origen desea un tratamiento especial por los enrutadores
+   intermedios. Podría transmitirse la naturaleza de ese tratamiento
+   especial hacia los enrutadores por un protocolo control, tal como el
+   protocolo reservación de recurso, o por información dentro de los
+   mismos paquetes del flujo, por ejemplo, en una opción de salto a
+   salto. Los detalles de tales protocolos control u opciones están
+   fuera del ámbito de este documento.
+
+   Pueden haber flujos activos múltiples desde un origen hacia un
+   destino, así como también tráfico que no esta asociado con algún
+   flujo. Un flujo se identifica singularmente por la combinación de una
+   dirección origen y una etiqueta de flujo no cero. Los paquetes que no
+   pertenecen a un flujo llevan una etiqueta de flujo de cero.
+
+   Una etiqueta de flujo se asigna a un flujo en el nodo origen del
+   flujo. Deben escogerse nuevas etiquetas de flujo (pseudo)
+   aleatoriamente y uniformemente del rango 1 al FFFFF en hexadecimal.
+   El propósito de la asignación al azar es para hacer cualquier
+   conjunto de bits dentro del campo Etiqueta de Flujo adecuado para el
+   uso como una clave por los enrutadores, para buscar el estado
+   asociado con el flujo.
+
+   Deben enviarse todos los paquetes que pertenecen al mismo flujo con
+   la misma dirección origen, dirección destino, y etiqueta de flujo. Si
+   alguno de esos paquetes incluye una cabecera Opciones de Salto a
+   Salto, entonces todos ellos deben originarse con los mismos
+   contenidos de cabecera Opciones de Salto a Salto (excepto el campo
+   Cabecera Siguiente de la cabecera Opciones de Salto a Salto). Si
+   alguno de esos paquetes incluye una cabecera Enrutamiento, entonces
+   todos ellos deben originarse con los mismos contenidos en todas las
+   cabeceras de extensión e incluso la cabecera Enrutamiento (excepto el
+   campo Cabecera Siguiente en la cabecera Enrutamiento). Se permiten a
+   los enrutadores o destinos, pero no se exige, verificar que estas
+   condiciones se cumplen. Si una violación se detecta, debe reportarse
+   al origen en un mensaje ICMP Problema de Parámetro, Código 0,
+   apuntando al octeto de mayor orden del campo Etiqueta de Flujo (es
+   decir, desplazamiento 1 dentro del paquete IPv6).
+
+   El tiempo de vida máximo de cualquier flujo en estado de tratamiento
+   establecido a lo largo de la ruta de un flujo debe especificarse como
+   parte de la descripción del estado del mecanismo de establecimiento,
+   por ejemplo, el protocolo reservación de recurso o la configuración
+   de la opción de salto a salto de flujo. Un origen no debe reusar una
+   etiqueta de flujo para un nuevo flujo dentro del tiempo de vida
+   máximo de cualquier flujo en estado de tratamiento que se podría
+   haber establecido para el uso anterior de esa etiqueta de flujo.
+
+Deering & Hinden           Track de Estándares               [Página 30]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Cuando un nodo detiene y reinicia (por ejemplo, como resultado de una
+   "caída"), debe tener el cuidado de no usar una etiqueta de flujo que
+   podría haber usado para un flujo anterior cuyo tiempo de vida pueda
+   no haber expirado aún. Esto puede lograrse registrando el uso de las
+   etiquetas de flujo sobre un almacenamiento estable para que pueda
+   tenerse presente durante las caídas, o absteniéndose de usar
+   cualquier etiqueta de flujo hasta que el tiempo de vida máximo de
+   cualquier posible flujo previamente establecido haya expirado. Si se
+   conoce el tiempo mínimo para reinicializar el nodo, ese tiempo puede
+   descontarse del periodo de espera necesario antes de empezar a
+   asignar las etiquetas de flujo.
+
+   No hay ningún requisito que todos, o incluso la mayoría, de los
+   paquetes pertenezcan a flujos, es decir, que lleven etiquetas de
+   flujo no cero. Esta observación se pone aquí para recordar a los
+   diseñadores e implementadores de protocolos no asumir lo contrario.
+   Por ejemplo, sería desacertado diseñar un enrutador cuyo rendimiento
+   sólo sería adecuado si la mayoría de los paquetes pertenecieran a
+   flujos, o diseñar un esquema de compresión de cabecera que sólo
+   trabaje sobre paquetes que pertenezcan a flujos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 31]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+Apéndice B. Pautas de Formateo para las Opciones
+
+   Este apéndice da algunos consejos en cómo disponer los campos al
+   diseñar nuevas opciones para ser usadas en la cabecera Opciones de
+   Salto a Salto o en la cabecera Opciones de Destino, tal como se
+   describe en la sección 4.2. Estas pautas se basan en las siguientes
+   suposiciones:
+
+      o  Una característica deseable es que cualquier campo multiocteto
+         dentro del área Datos de la Opción de una opción se alinean en
+         sus límites naturales, es decir, los campos de ancho de n
+         octetos deben ser colocados en un entero múltiplo de n octetos
+         desde el inicio de la cabecera Opciones de Salto a Salto o de
+         la cabecera Opciones de Destino, para n = 1, 2, 4, o 8.
+
+      o  Otra característica deseable es que la cabecera Opciones de
+         Salto a Salto o la cabecera Opciones de Destino ocupe tan poco
+         espacio como sea posible, sujeto al requisito que la cabecera
+         sea un entero múltiplo de 8 octetos de largo.
+
+      o  Puede asumirse que, cuando ambas cabeceras que tienen opciones
+         están presentes, llevan un número muy pequeño de opciones,
+         usualmente solo una.
+
+   Estas suposiciones sugieren la siguiente propuesta para disponer los
+   campos de una opción: ordenar los campos desde el más pequeño hasta
+   el más grande, sin relleno interior, luego deducir el requisito de
+   alineación para la opción entera en base al requisito de alineación
+   del campo más grande (hasta una alineación máxima de 8 octetos). Esta
+   propuesta se ilustra en los siguiente ejemplos:
+
+   Ejemplo 1
+
+   Si una opción X requiere dos campos datos, uno de longitud de 8
+   octetos y uno de longitud de 4 octetos, se dispondrían tal como
+   sigue:
+                                   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                   |Tipo d Opción=X|Lon Dats Opc=12|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                       campo de 8 octetos                      +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 32]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Su requisito de alineación es 8n+2, para asegurar que el campo de 8
+   octetos comience en un desplazamiento múltiplo de 8 a partir del
+   inicio de la cabecera circundante. Una cabecera Opciones de Salto a
+   Salto completa o una cabecera Opciones de Destino completa que
+   contiene esta única opción se vería como sigue:
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Cabcera Siguien| Lon Cab Ext=1 |Tipo d Opción=X|Lon Dats Opc=12|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                       campo de 8 octetos                      +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Ejemplo 2
+
+   Si una opción Y requiere tres campos datos, una de longitud de 4
+   octetos, una de longitud de 2 octetos, y una de longitud de 1 octeto,
+   se dispondrían tal como sigue:
+
+                                                   +-+-+-+-+-+-+-+-+
+                                                   |Tipo d Opción=Y|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Lon Datos Opc=7|campo d 1 octet|       campo de 2 octetos      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Su requisito de alineación es 4n+3, para asegurar que el campo de 4
+   octetos comience en un desplazamiento múltiplo de 4 a partir del
+   inicio de la cabecera circundante. Una cabecera Opciones de Salto a
+   Salto completa o una cabecera Opciones de Destino completa que
+   contiene esta única opción se vería como sigue:
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Cabcera Siguien| Lon Cab Ext=1 | Opción Pad1=0 |Tipo d Opción=Y|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Lon Datos Opc=7|campo d 1 octet|       campo de 2 octetos      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Opción PadN=1 |Lon Datos Opc=2|       0       |       0       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 33]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+   Ejemplo 3
+
+   Una cabecera Opciones de Salto a Salto o una cabecera Opciones de
+   Destino que contiene ambas opciones X e Y de los Ejemplos 1 y 2
+   tendría uno de los dos siguientes formatos, dependiendo en que opción
+   apareciera primero:
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Cabcera Siguien| Lon Cab Ext=3 |Tipo d Opción=X|Lon Dats Opc=12|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                       campo de 8 octetos                      +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Opción PadN=1 |Lon Datos Opc=1|       0       |Tipo d Opción=Y|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Lon Datos Opc=7|campo d 1 octet|       campo de 2 octetos      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Opción PadN=1 |Lon Datos Opc=2|       0       |       0       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Cabcera Siguien| Lon Cab Ext=3 | Opción Pad1=0 |Tipo d Opción=Y|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Lon Datos Opc=7|campo d 1 octet|       campo de 2 octetos      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Opción PadN=1 |Lon Datos Opc=4|       0       |       0       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |       0       |       0       |Tipo d Opción=X|Lon Dats Opc=12|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       campo de 4 octetos                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                       campo de 8 octetos                      +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 34]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+Consideraciones de Seguridad
+
+   Las características de seguridad del IPv6 se describen en la
+   Arquitectura de Seguridad para el Protocolo Internet [RFC-2401].
+
+Reconocimientos
+
+   Los autores agradecidamente reconocen el gran número de sugerencias
+   útiles de los miembros del grupo de trabajo IPng, del grupo de
+   investigación de Protocolos de Extremo a Extremo, y de la Comunidad
+   Internet En General.
+
+Direcciones de los Autores
+
+   Stephen E. Deering
+   Cisco Systems, Inc.
+   170 West Tasman Drive
+   San Jose, CA 95134-1706
+   USA
+
+   Teléfono:           +1 408 527 8213
+   Fax:                +1 408 527 8254
+   Correo Electrónico: deering@cisco.com
+
+
+   Robert M. Hinden
+   Nokia
+   232 Java Drive
+   Sunnyvale, CA 94089
+   USA
+
+   Teléfono:           +1 408 990-2004
+   Fax:                +1 408 743-5677
+   Correo Electrónico: hinden@iprg.nokia.com
+
+Dirección del Traductor al Castellano
+
+   Percy Luis Ché Castillo
+   UPAO
+   Av. América Sur 3145
+   Urb. Monserrate, Trujillo
+   PERÚ
+
+   Teléfono:           +51 044 201880
+   Fax:                +51 044 286111
+   Correo Electrónico: percychecastillo@yahoo.com
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 35]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+Referencias
+
+   [RFC-2401]   Kent, S. y R. Atkinson, "Arquitectura de Seguridad para
+                el Protocolo Internet", RFC 2401, Noviembre 1998.
+
+   [RFC-2402]   Kent, S. y R. Atkinson, "Cabecera Autenticación del IP",
+                RFC 2402, Noviembre 1998.
+
+   [RFC-2406]   Kent, S. y R. Atkinson, "Seguridad del Encapsulado de la
+                Carga Útil (ESP)", RFC 2406, Noviembre 1998.
+
+   [ICMPv6]     Conta, A. y S. Deering, "ICMP para el Protocolo Internet
+                Versión 6 (IPv6)", RFC 2463, Diciembre 1998.
+
+   [ADDRARCH]   Hinden, R. y S. Deering, "Arquitectura de
+                Direccionamiento para la Versión 6 del IP", RFC 2373,
+                Julio 1998.
+
+   [RFC-1981]   McCann, J., Mogul, J. y S. Deering, "Descubrimiento de
+                la MTU para la versión 6 del IP", RFC 1981, Agosto 1996.
+
+   [RFC-791]    Postel, J., "Protocolo Internet", STD 5, RFC 791,
+                Setiembre 1981.
+
+   [RFC-1700]   Reynolds, J. y J. Postel, "Números Asignados", STD 2,
+                RFC 1700, Octubre 1994.  Ver también:
+                http://www.iana.org/numbers.html
+
+   [RFC-1661]   Simpson, W., "El Protocolo Punto a Punto (PPP)", STD
+                51, RFC 1661, Julio 1994.
+
+CAMBIOS A PARTIR DE LA RFC-1883
+
+   Este memorándum tiene los siguientes cambios a partir de la RFC-1883.
+   Los números identifican la versión del Bosquejo Internet en la cual
+   se hizo el cambio.
+
+    02) Se quitaron todas las referencias a datagramas de tamaño gigante
+        y la opción Carga Útil de Tamaño Gigante (se movió hacia un
+        documento separado).
+
+    02) Se movió la mayor parte de la descripción de la Etiqueta de
+        Flujo de la sección 6 hacia el (nuevo) Apéndice A.
+
+    02) En la descripción de la Etiqueta de Flujo, ahora en el Apéndice
+        A, se corrigió el valor Etiqueta de Flujo máximo de FFFFFF a
+        FFFFF (es decir, un "F" menos) debido a la reducción del tamaño
+        del campo Etiqueta de Flujo de 24 bits a 20 bits.
+
+
+
+Deering & Hinden           Track de Estándares               [Página 36]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+    02) Se reenumeró (se reletreó?) el anterior Apéndice A para ser el
+        Apéndice B.
+
+    02) Se cambió la redacción de la sección Consideraciones de
+        Seguridad para evitar bucle dependencia entre esta
+        especificación y las especificaciones del IPsec.
+
+    02) Se actualizó la dirección de correo electrónico y la afiliación
+        de compañía de R. Hinden.
+
+        --------------------------------------------------------
+
+    01) En la sección 3, se cambió el nombre del campo "Clase" a "Clase
+        de Tráfico" y se aumentó su tamaño de 4 a 8 bits. Se disminuyó
+        el tamaño del campo Etiqueta de Flujo de 24 a 20 bits para
+        compensar el aumento en el campo Clase de Tráfico.
+
+    01) En la sección 4.1, se restituyó el orden de la Cabecera
+        Autenticación y la Cabecera ESP, las cuales fueron
+        intercambiadas equivocadamente en la versión 00 de este
+        memorándum.
+
+    01) En la sección 4.4, se suprimió el campo Mapa de Bits
+        Estricto/Impreciso y la funcionalidad enrutamiento estricto de
+        la cabecera Enrutamiento de Tipo 0, y se quitó la restricción
+        sobre el número de direcciones que pueden ser llevadas dentro de
+        la cabecera Enrutamiento de Tipo 0 (fue limitado a 23
+        direcciones, debido al tamaño del mapa de bits
+        estricto/impreciso).
+
+    01) En la sección 5, se cambió la mínima MTU IPv6 de 576 a 1280
+        octetos, y se añadió una recomendación que los enlaces con una
+        MTU configurable (por ejemplo, enlaces PPP) sean configurados
+        para tener una MTU de por lo menos 1500 octetos.
+
+    01) En la sección 5, se suprimió el requisito que un nodo no debe
+        enviar paquetes fragmentados de tal manera que reensamblan a más
+        de 1500 octetos sin conocimiento del tamaño del búfer de
+        reensamblaje destino, y se lo reemplazó con una recomendación
+        que los protocolos o las aplicaciones de capa superior no
+        deberían hacer eso.
+
+    01) Se reemplazó la referencia hacia la especificación
+        Descubrimiento de la MTU de la Ruta para el IPv4 (RFC-1191) con
+        la referencia hacia la especificación Descubrimiento de la MTU
+        de la Ruta para el IPv6 (RFC-1981), y se suprimieron las Notas
+        al final de la sección 5 respecto al Descubrimiento de la MTU de
+        la Ruta, dado que esos detalles ahora son cubiertos por la RFC-
+        1981.
+
+
+Deering & Hinden           Track de Estándares               [Página 37]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+    01) En la sección 6, se suprimió la especificación de flujo
+        establecido "oportunista", y se quitaron todas las referencias
+        al tiempo de vida máximo de 6 segundos para el estado de flujo
+        establecido oportunamente.
+
+    01) En la sección 7, se suprimió la descripción provisional de la
+        estructura interna y semántica del campo Clase de Tráfico, y se
+        especificó que tales descripciones sean proporcionadas en
+        documentos separados.
+
+        --------------------------------------------------------
+
+    00) En la sección 4, se corrigió el valor Código para indicar
+        "encontrado tipo de Cabecera Siguiente desconocido" en un
+        mensaje ICMP Problema de Parámetro (se cambió de 2 a 1).
+
+    00) En la descripción del campo Longitud de la Carga Útil en la
+        sección 3, y del campo Longitud de la Carga Útil de Tamaño
+        Gigante en la sección 4.3, se aclaró que las cabeceras de
+        extensión están incluidas en el conteo de la longitud de la
+        carga útil.
+
+    00) En la sección 4.1, se intercambió el orden de la cabecera
+        Autenticación y la cabecera ESP. (NOTA: esto fue un error, y el
+        cambio fue desecho en la versión 01).
+
+    00) En la sección 4.2, se aclaró que las opciones son identificadas
+        por un Tipo de Opción de 8 bits completo, no por los 5 bits de
+        bajo orden de un Tipo de Opción. Se especificó también que el
+        mismo espacio de enumeración del Tipo de Opción es usado tanto
+        por la cabecera Opciones de Salto a Salto como por la cabecera
+        Opciones de Destino.
+
+    00) En la sección 4.4, se añadió una sentencia exigiendo que los
+        nodos que procesan una cabecera Enrutamiento deben enviar un
+        mensaje ICMP Paquete Demasiado Grande en contestación a un
+        paquete que es demasiado grande para caber en el enlace de salto
+        siguiente (en lugar de, digamos, llevar a cabo fragmentación).
+
+    00) Se cambió el nombre del campo Prioridad IPv6 a "Clase", y se
+        reemplazó la descripción anterior de Prioridad en la sección 7
+        con una descripción del campo Clase. También, se excluyó este
+        campo del conjunto de campos que deben permanecer de la misma
+        forma para todos los paquetes en el mismo flujo, tal como se
+        especificó en la sección 6.
+
+
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 38]
+
+RFC 2460                 Especificación del IPv6          Diciembre 1998
+
+
+    00) En la pseudo cabecera en la sección 8.1, se cambió el nombre del
+        campo "Longitud de la Carga Útil" a "Longitud del Paquete de
+        Capa Superior". Se aclaró también que, en el caso de protocolos
+        que llevan su propia información de longitud (como el datagrama
+        de tamaño no gigante UDP), es la longitud derivada de la capa
+        superior, no la longitud derivada de la capa IP, la que es usada
+        en la pseudo cabecera.
+
+    00) Se añadió la sección 8.4, especificando que los protocolos de
+        capa superior, al contestar a un paquete recibido que llevó una
+        cabecera Enrutamiento, no deben incluir el inverso de la
+        cabecera Enrutamiento en el(los) paquete(s) respuesta a menos
+        que la cabecera Enrutamiento recibida fuese autenticada.
+
+    00) Corregidos algunos errores tipográficos y errores gramaticales.
+
+    00) Actualizada la información de contacto de los autores.
+
+        --------------------------------------------------------
+
+Declaración de Copyright Completa
+
+   Copyright (C) La Sociedad Internet (1998). Todos los Derechos
+   Reservados.
+
+   Este documento y sus traducciones puede ser copiado y facilitado a
+   otros, y los trabajos derivados que lo comentan o lo explican o
+   ayudan a su implementación pueden ser preparados, copiados,
+   publicados y distribuidos, enteros o en parte, sin restricción de
+   ningún tipo, siempre que se incluyan este párrafo y el aviso de
+   copyright expuesto arriba en todas esas copias y trabajos
+   derivados. Sin embargo, este documento en sí no debe ser modificado
+   de ninguna forma, tal como eliminando el aviso de copyright o
+   referencias a la Sociedad Internet u otras organizaciones de
+   Internet, excepto cuando sea necesario en el desarrollo de estándares
+   Internet, en cuyo caso se seguirán los procedimientos para
+   copyrights definidos en el proceso de Estándares Internet, o con
+   motivo de su traducción a otras lenguas aparte del Inglés.
+
+   Los permisos limitados concedidos más arriba son perpetuos y no serán
+   revocados por la Sociedad Internet o sus sucesores o cesionarios.
+
+   Este documento y la información contenida en él se proporcionan en su
+   forma "TAL CUAL" y LA SOCIEDAD INTERNET Y LA FUERZA DE TRABAJO EN
+   INGENIERÍA INTERNET RECHAZAN CUALESQUIERA GARANTÍAS, EXPRESAS O
+   IMPLÍCITAS, INCLUYENDO, PERO NO LIMITADAS A, CUALQUIER GARANTÍA DE
+   QUE EL USO DE LA INFORMACIÓN AQUÍ EXPUESTA NO INFRINGIRÁ NINGÚN
+   DERECHO O GARANTÍAS IMPLÍCITAS DE COMERCIALIZACIÓN O IDONEIDAD PARA
+   UN PROPÓSITO ESPECÍFICO.
+
+
+
+
+Deering & Hinden           Track de Estándares               [Página 39]
+

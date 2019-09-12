@@ -1,0 +1,42 @@
+#!/bin/bash
+clear
+echo Pruebas Level1...
+./cor12.sh tavlcalendario/level1/tad01.cc
+./cor12.sh tavlcalendario/level1/tad02.cc
+./cor12.sh tavlcalendario/level1/tad03.cc
+./cor12.sh tavlcalendario/level1/tad04.cc
+./cor12.sh tavlcalendario/level1/tad05.cc
+./cor12.sh tavlcalendario/level1/tad06.cc
+./cor12.sh tavlcalendario/level1/tad07.cc
+./cor12.sh tavlcalendario/level1/tad08.cc
+./cor12.sh tavlcalendario/level1/tad09.cc
+./cor12.sh tavlcalendario/level1/tad10.cc
+./cor12.sh tavlcalendario/level1/tad11.cc
+./cor12.sh tavlcalendario/level1/tad12.cc
+echo Pruebas Level2...
+./cor12.sh tavlcalendario/level2/tad01.cc
+./cor12.sh tavlcalendario/level2/tad02.cc
+./cor12.sh tavlcalendario/level2/tad03.cc
+./cor12.sh tavlcalendario/level2/tad04.cc
+./cor12.sh tavlcalendario/level2/tad05.cc
+./cor12.sh tavlcalendario/level2/tad06.cc
+./cor12.sh tavlcalendario/level2/tad07.cc
+./cor12.sh tavlcalendario/level2/tad08.cc
+./cor12.sh tavlcalendario/level2/tad09.cc
+./cor12.sh tavlcalendario/level2/tad10.cc
+./cor12.sh tavlcalendario/level2/tad11.cc
+./cor12.sh tavlcalendario/level2/tad12.cc
+./cor12.sh tavlcalendario/level2/tad13.cc
+./cor12.sh tavlcalendario/level2/tad14.cc
+./cor12.sh tavlcalendario/level2/tad15.cc
+./cor12.sh tavlcalendario/level2/tad16.cc
+./cor12.sh tavlcalendario/level2/tad17.cc
+./cor12.sh tavlcalendario/level2/tad18.cc
+./cor12.sh tavlcalendario/level2/tad19.cc
+echo Pruebas Level3...
+./cor12.sh tavlcalendario/level3/tad01.cc
+./cor12.sh tavlcalendario/level3/tad02.cc
+./cor12.sh tavlcalendario/level3/tad03.cc
+./cor12.sh tavlcalendario/level3/tad04.cc
+./cor12.sh tavlcalendario/level3/tad05.cc
+./cor12.sh tavlcalendario/level3/tad06.cc

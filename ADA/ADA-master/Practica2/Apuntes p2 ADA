@@ -1,0 +1,118 @@
+QuickSort:
+n
+n
+n=
+log2(n)
+
+Tm(n) e (omega)(n*log(n))
+
+El pivote es la mediana del vector.
+
+n
+(n-1)
+(n-2)
+etc...
+
+Tp(n) e O(n^2)
+
+####################################
+
+Heapsort:
+(arbol)
+		<-9->
+	<-7->		<-6
+   3	        5       1
+
+-------------------------------
+P1 = construir heap
+Tmp1(n) e (Omega)(n) mejor
+Tpp1(n) e O(n*logn(n)) peor
+-------------------------------
+P2 = vector ordenado a partir de heap
+Tp2 e O(n*log2(n))
+-------------------------------
+Conclusión:
+Tm(n) = n + n log2(n) e O(n*log2(n))
+Tp(n) = n*log2(n) + n * log2(n) e O(n*log2(n)) = 2nlog2(n)
+
+####################################
+
+PASO DE PROGRAMA:
+(conjunto de instrucciones cuya ejecucion esta acotada por una constante)
+(NO depende del tamaño del problema)
+
+Tamaño: n
+int a, b = 0                     |
+v[0] = 5;                        |	= 1
+for(int i = 0;|//i < n; i++){ // |
+	a = v[i]	      //    = n pasos
+}			      //
+
+---------------------------------
+
+Tamaño: n
+int a, b = 0                       |
+v[0] = 5;                          |	= 1
+for(int i = 0;|//i < n; i++){ //   |
+	if(v[i]>v[0]){	
+		a = v[i]     //    = n pasos
+	}
+}			    //
+
+---------------------------------
+		Siempre tiene razon n da igual el 100 (el 100 va a ser un paso)
+Tamaño: n
+int a, b = 0                       |
+v[0] = 5;                          |	= 1
+for(int i = 0;|//i < 100; i++){ // |
+	a = v[i]     		//    = 1 pasos
+}			    	//
+
+######################################
+#PRÁCTICA 2:
+
+Contar pasos de heapsort y quicksort en:
+	-v aleatorio
+	-v ordenado asc
+	-v ordenado desc
+
+1. qs-vs-hs > gs-vs-ns.Msteps
+	1.1 Añadir _STEPS_ a heapsort (inicializar a 0 obviamente)
+	1.2 Main ->
+		Para cada "size":
+			reservar memoria v_qs
+			''	''	v_hs
+		Repetir 30 veces:
+			inicializar v_qs y v_hs con rand();
+			ordenar Hs y Qs
+			ordenar Hs y Qs de nuevo
+			invertir
+			ordenar Hs y Qs oootra vez
+		Imprimir fila.
+
+2. qs-vs-hs.gnuplot (5 veces)
+	-quicksort.png: 3 tipos de vectores
+	-heapsort.png: 3 tipos de vectores
+	-vectores aleatorio -> heapsort, quicksort -> (fit)(fit) -> n*log(n) + n;
+	-vectores ordenados asc -> heapsort, quicksort -> (fit)(fit) -> n*log(n) + n;
+	-vectores ordenados desc -> heapsort, quicksort -> (fit)(fit) -> n*log(n) + n;
+
+3. Makefile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

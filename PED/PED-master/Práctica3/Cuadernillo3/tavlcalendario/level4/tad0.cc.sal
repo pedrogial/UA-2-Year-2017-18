@@ -1,0 +1,9 @@
+Complejo borrado01/01/2001 ""
+niveles: [(1) 01/01/2002 "",(2) 01/01/2003 ""]
+inorden: [(1) 01/01/2002 "",(2) 01/01/2003 ""]
+Complejo borrado01/01/2002 ""
+niveles: [(1) 01/01/2003 ""]
+inorden: [(1) 01/01/2003 ""]
+Complejo borrado01/01/2003 ""
+niveles: []
+inorden: []

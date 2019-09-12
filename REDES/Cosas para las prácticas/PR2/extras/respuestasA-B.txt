@@ -1,0 +1,36 @@
+A1 - 1 - D
+A2 - 2 - A
+A2 - 3 - C
+A2 - 4 - 
+	1-1 -> 1-2
+	10.1.0.1 -> 10.1.0.2 | MF=1 OFF=0 tam=20+8+1472 ICMP Echo Request
+	10.1.0.1 -> 10.1.0.2 | MF=0 OFF=1480 tam=20+28 ICMP Echo Request
+	1-2 -> 1-1
+	10.1.0.2 -> 10.1.0.1 | MF=1 OFF=0 tam=20+8+1472 ICMP Echo Reply
+	10.1.0.2 -> 10.1.0.1 | MF=0 OFF=1480 tam=20+28 ICMP Echo Reply
+
+A3 - 5 - D
+A4 - 6 - C
+A4 - 7 - A
+A4 - 8
+	MAC2 -> MAC3 | 5.3.2.2 -> 5.2.1.0 | ICMP Echo Request + Datos
+	MAC3 -> MAC2 | 5.3.1.0 -> 5.3.2.2 | ICMP Redirect DG: 5.3.1.1 + Cab IP + Cab ICMP paq. err—neo
+	MAC3 -> MAC4 | 5.3.2.2 -> 5.2.1.0 | ICMP Echo Request + Datos
+	MAC4 -> MAC2 | 5.2.1.0 -> 5.3.2.2 | ICMP Echo Reply + Datos
+
+B1 - 1 - B
+B3 - 2 - D
+B3 - 3 - D
+B3 - 4 
+	1-1 -> Router
+	10.1.0.1 -> 10.1.0.3 | Tlength=20+8+1000 Off=0 MF=0 | ICMP Echo Request
+	Router -> 1-1
+	10.1.0.3 -> 10.1.0.1 | Tlength=20+8+28 Off=0 MF=0 | ICMP Dest. Unreachable
+B3 - 5 - C
+B4 - 6 - B
+B4 - 7 - C
+B4 - 8
+	MAC3 -> MAC4 | 5.3.1.0 -> 5.4.2.2 | ICMP Echo Request
+	MAC5 -> MAC7 | 5.3.1.0 -> 5.4.2.2 | ICMP Echo Request
+	MAC7 -> MAC5 | 5.3.1.0 -> 5.4.2.2 | ICMP Echo Request
+	MAC4 -> MAC3 | 5.3.1.1 -> 5.3.1.0 | ICMP TTL Excedeed

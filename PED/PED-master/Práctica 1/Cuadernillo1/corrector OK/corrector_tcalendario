@@ -1,0 +1,23 @@
+#!/bin/bash
+clear
+echo Pruebas TCalendario...
+./cor12.sh TCalendario/tad01.cpp
+./cor12.sh TCalendario/tad02.cpp
+./cor12.sh TCalendario/tad03.cpp
+./cor12.sh TCalendario/tad04.cpp
+./cor12.sh TCalendario/tad05.cpp
+./cor12.sh TCalendario/tad06.cpp
+./cor12.sh TCalendario/tad07.cpp
+./cor12.sh TCalendario/tad08.cpp
+./cor12.sh TCalendario/tad09.cpp
+./cor12.sh TCalendario/tad10.cpp
+echo Mas pruebas TCalendario...
+./cor12.sh TCalendario/mas/tad01.cpp
+./cor12.sh TCalendario/mas/tad02.cpp
+./cor12.sh TCalendario/mas/tad03.cpp
+./cor12.sh TCalendario/mas/tad04.cpp
+./cor12.sh TCalendario/mas/tad05.cpp
+echo Otras pruebas TCalendario...
+./cor12.sh TCalendario/otras/tad01.cpp
+./cor12.sh TCalendario/otras/tad02.cpp
+

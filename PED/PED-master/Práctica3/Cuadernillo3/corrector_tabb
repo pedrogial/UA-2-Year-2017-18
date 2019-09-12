@@ -1,0 +1,16 @@
+#!/bin/bash
+clear
+echo Pruebas TABB...
+./cor12.sh tabbcalendario/tad01.cpp
+./cor12.sh tabbcalendario/tad02.cpp
+./cor12.sh tabbcalendario/tad03.cpp
+./cor12.sh tabbcalendario/tad04.cpp
+./cor12.sh tabbcalendario/tad05.cpp
+./cor12.sh tabbcalendario/tad06.cpp
+./cor12.sh tabbcalendario/tad07.cpp
+./cor12.sh tabbcalendario/tad08.cpp
+./cor12.sh tabbcalendario/tad09.cpp
+./cor12.sh tabbcalendario/tad10.cpp
+./cor12.sh tabbcalendario/tad11.cpp
+./cor12.sh tabbcalendario/tad16.cpp
+./cor12.sh tabbcalendario/tad17.cpp

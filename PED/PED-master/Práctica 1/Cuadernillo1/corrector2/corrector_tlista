@@ -1,0 +1,20 @@
+#!/bin/bash
+clear
+echo Pruebas TLista...
+./cor12.sh tlistacalendario/tad01.cpp
+./cor12.sh tlistacalendario/tad02.cpp
+./cor12.sh tlistacalendario/tad03.cpp
+./cor12.sh tlistacalendario/tad04.cpp
+./cor12.sh tlistacalendario/tad05.cpp
+./cor12.sh tlistacalendario/tad06.cpp
+./cor12.sh tlistacalendario/tad07.cpp
+./cor12.sh tlistacalendario/tad08.cpp
+./cor12.sh tlistacalendario/tad09.cpp
+./cor12.sh tlistacalendario/tad10.cpp
+#./cor12.sh tlistacalendario/tad11.cpp
+./cor12.sh tlistacalendario/tad16.cpp
+./cor12.sh tlistacalendario/tad17.cpp
+./cor12.sh tlistacalendario/tad18.cpp
+./cor12.sh tlistacalendario/tad19.cpp
+./cor12.sh tlistacalendario/tad20.cpp
+

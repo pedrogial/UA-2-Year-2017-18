@@ -1,0 +1,28 @@
+#!/bin/bash
+clear
+echo Pruebas Correccion...
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad01.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad02.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad03.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad04.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad05.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad06.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad07.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad08.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad10.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad11.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad12.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad13.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad14.cpp
+./cor12.sh Tads_evaluacion_cuad2/correccion/tad15.cpp
+echo Pruebas prueba...
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad01.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad02.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad03.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad04.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad05.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad06.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad07.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad08.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad09.cpp
+./cor12.sh Tads_evaluacion_cuad2/prueba/tad10.cpps

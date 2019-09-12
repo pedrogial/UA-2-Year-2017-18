@@ -1,0 +1,24 @@
+En el 1 te pone una ilustración de una red y te dice "si tal IP manda un echo request a otra IP, qué ICMP devuelve el destinatario?"
+Eran cuatro apartados
+Eran cuatro apartados
+
+Uno te daba la ip de un host, otro la de un router, otro te daba una que no existía
+Esos son tipo test
+
+Y en el cuarto te dice que escribas el flujo de datagramas para mandar a una IP que no existe
+
+O sea, a un host que no existe, perdón
+
+Luego salieron dos más de test: una no me acuerdo y la otra te decía que el retardo es de 25ms  con distorsión del 15%
+
+Esa era cuestión de términos, porque en uno ponía el valor máximo, retraso mínimo, valor de distorsión...
+
+Y por último otra ilustración y hacer el datagrama para mandar un echo, con -i 5 (ttl=5)                        
+
+
+La que falta era una que decía una máquina recibe un mensaje de error fragment needed                        
+                     
+
+Quien le ha enviado ese mensaje
+Un router, 
+La maquina destino ...

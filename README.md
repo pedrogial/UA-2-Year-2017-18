@@ -1,4 +1,4 @@
-# UA Segundo año Curso 2016/2017
+# UA Segundo año Curso 2017/2018
 Todo lo realizado en la Universidad de Alicante desde 2016 a 2020.
 
 Soy una persona que me gusta guardar todas las cosas que he hecho durante todos los cursos cursados en la Universidad de Alicante.
